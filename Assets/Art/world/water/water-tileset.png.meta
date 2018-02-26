@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 7fd15accb1fea4b399e5996e0cc26d4e
-timeCreated: 1518319705
+timeCreated: 1519608726
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -470,13 +470,9 @@ TextureImporter:
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape:
-      - - {x: 10, y: 12}
-        - {x: -3, y: 1}
-        - {x: -16, y: -13}
-        - {x: -16, y: -16}
+      - - {x: -16, y: -16}
         - {x: 16, y: -16}
         - {x: 16, y: 16}
-        - {x: 14, y: 16}
       tessellationDetail: 0
     - serializedVersion: 2
       name: water-tileset_18
