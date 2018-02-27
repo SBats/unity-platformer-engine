@@ -19,16 +19,21 @@ public class Controller2D : RaycastController {
 		public bool descendingSlope;
 		public float slopeAngle, slopeAngleOld;
 		public Vector3 velocityOld;
+		public int facedDir;
+		public bool fallingThroughPlatform;
 
 		public void Reset() {
 			above = bellow = false;
 			left = right = false;
 			climbingSlope = false;
 			descendingSlope = false;
+			fallingThroughPlatform = false;
 			slopeAngleOld = slopeAngle;
 			slopeAngle = 0;
 		}
 	}
+
+	private Vector2 playerInput;
 
 	//
 	// LifeCycles
@@ -36,6 +41,7 @@ public class Controller2D : RaycastController {
 
 	public override void Start() {
 		base.Start();
+		this.collisions.facedDir = 1;
 	}
 
 	//
@@ -43,17 +49,23 @@ public class Controller2D : RaycastController {
 	//
 
 	public void Move(Vector3 velocity, bool standingOnPlatform = false) {
-		UpdateRaycastOrigins();
-		collisions.Reset();
+		Move(velocity, Vector2.zero, standingOnPlatform);
+	}
 
+	public void Move(Vector3 velocity, Vector2 input, bool standingOnPlatform = false) {
+		UpdateRaycastOrigins();
+		this.collisions.Reset();
 		this.collisions.velocityOld = velocity;
+		this.playerInput = input;
+
+		if (velocity.x != 0) {
+			this.collisions.facedDir = (int)Mathf.Sign(velocity.x);
+		}
 
 		if (velocity.y < 0) {
 			DescendSlope(ref velocity);
 		}
-		if (velocity.x != 0) {
-			HorizontalCollisions(ref velocity);
-		}
+		HorizontalCollisions(ref velocity);
 		if (velocity.y != 0) {
 			VerticalCollisions(ref velocity);
 		}
@@ -71,8 +83,12 @@ public class Controller2D : RaycastController {
 	//
 
 	private void HorizontalCollisions(ref Vector3 velocity) {
-		float directionX = Mathf.Sign(velocity.x);
+		float directionX = this.collisions.facedDir;
 		float rayLength = Mathf.Abs(velocity.x) + this.skinWidth;
+
+		if (Mathf.Abs(velocity.x) < skinWidth) {
+			rayLength = 2 * this.skinWidth;
+		}
 
 		for (int i = 0; i < this.horizontalRayCount; i++) {
 			Vector2 rayOrigin = (directionX == -1) ? this.raycastOrigins.bottomLeft : this.raycastOrigins.bottomRight;
@@ -127,6 +143,21 @@ public class Controller2D : RaycastController {
 			Debug.DrawRay(rayOrigin, Vector2.up * directionY * rayLength, Color.red);
 
 			if (hit) {
+
+				if (hit.collider.tag == "Through") {
+					if (directionY == 1 || hit.distance == 0) {
+						continue;
+					}
+					if (this.collisions.fallingThroughPlatform) {
+						continue;
+					}
+					if (playerInput.y == -1) {
+						this.collisions.fallingThroughPlatform = true;
+						Invoke("ResetFallingThroughPlatform", .5f);
+						continue;
+					}
+				}
+
 				velocity.y = (hit.distance - this.skinWidth) * directionY;
 				rayLength = hit.distance;
 
@@ -190,5 +221,9 @@ public class Controller2D : RaycastController {
 				}
 			}
 		}
+	}
+
+	private void ResetFallingThroughPlatform() {
+		this.collisions.fallingThroughPlatform = false;
 	}
 }
