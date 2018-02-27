@@ -8,6 +8,7 @@ public class TutorialPlayerController : MonoBehaviour {
   public float maxJumpHeight = 3f;
   public float minJumpHeight = 1f;
   public float timeToJumpApex = .4f;
+  public int extrajumps = 0;
   public float accelerationTimeAirborne = .2f;
   public float accelerationTimeGrounded = .1f;
   public float moveSpeed = 6f;
@@ -27,6 +28,7 @@ public class TutorialPlayerController : MonoBehaviour {
   private Vector2 directionalInput;
   private bool wallSliding;
   private int wallDirX;
+  private int currentJump;
 
   private void Start() {
     controller = GetComponent<Controller2D>();
@@ -49,6 +51,10 @@ public class TutorialPlayerController : MonoBehaviour {
         this.velocity.y = 0;
       }
     }
+
+    if (this.controller.collisions.bellow || this.wallSliding && this.currentJump == this.extrajumps) {
+      this.currentJump = 0;
+    }
   }
 
   public void SetDirectionalInput(Vector2 input) {
@@ -69,6 +75,7 @@ public class TutorialPlayerController : MonoBehaviour {
       }
     }
     if (this.controller.collisions.bellow) {
+      this.currentJump = 0;
       if (this.controller.collisions.slidingDownMaxSlope) {
         if (this.directionalInput.x != -Mathf.Sign(this.controller.collisions.slopeNormal.x)) {
           velocity.y = this.maxJumpVelocity * this.controller.collisions.slopeNormal.y;
@@ -76,6 +83,11 @@ public class TutorialPlayerController : MonoBehaviour {
         }
       } else {
         this.velocity.y = this.maxJumpVelocity;
+      }
+    } else {
+      if (!this.wallSliding && this.currentJump < this.extrajumps) {
+        this.currentJump++;
+        this.velocity.y = this.minJumpVelocity;
       }
     }
   }
