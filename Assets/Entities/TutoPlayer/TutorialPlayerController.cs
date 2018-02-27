@@ -24,6 +24,9 @@ public class TutorialPlayerController : MonoBehaviour {
   private float velocityXSmoothing;
   private float timeToWallUnstick;
   private Controller2D controller;
+  private Vector2 directionalInput;
+  private bool wallSliding;
+  private int wallDirX;
 
   private void Start() {
     controller = GetComponent<Controller2D>();
@@ -34,25 +37,76 @@ public class TutorialPlayerController : MonoBehaviour {
   }
 
   private void Update() {
-    Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-    int wallDirX = this.controller.collisions.left ? -1 : 1;
+    CalculateVelocity();
+    HandleWallSliding();
 
-    float targetVelocityX = input.x * this.moveSpeed;
-    this.velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref this.velocityXSmoothing, this.controller.collisions.bellow ? this.accelerationTimeGrounded : this.accelerationTimeAirborne);
+    this.controller.Move(this.velocity * Time.deltaTime, this.directionalInput);
 
-    bool wallSliding = false;
-    if ((this.controller.collisions.left || this.controller.collisions.right) && !this.controller.collisions.bellow && velocity.y <0) {
-      wallSliding = true;
+    if (this.controller.collisions.above || this.controller.collisions.bellow) {
+      if (this.controller.collisions.slidingDownMaxSlope) {
+        this.velocity.y += this.controller.collisions.slopeNormal.y * -gravity * Time.deltaTime;
+      } else {
+        this.velocity.y = 0;
+      }
+    }
+  }
 
-      if (velocity.y < wallSlideSpeedMax) {
-        velocity.y = -wallSlideSpeedMax;
+  public void SetDirectionalInput(Vector2 input) {
+    this.directionalInput = input;
+  }
+
+  public void OnJumpInputDown() {
+    if (this.wallSliding) {
+      if (this.wallDirX == this.directionalInput.x) {
+        this.velocity.x = -this.wallDirX * this.wallJumpClimb.x;
+        this.velocity.y = this.wallJumpClimb.y;
+      } else if (this.directionalInput.x == 0) {
+        this.velocity.x = -this.wallDirX * this.wallJumpOff.x;
+        this.velocity.y = this.wallJumpOff.y;
+      } else {
+        this.velocity.x = -this.wallDirX * this.wallLeap.x;
+        this.velocity.y = this.wallLeap.y;
+      }
+    }
+    if (this.controller.collisions.bellow) {
+      if (this.controller.collisions.slidingDownMaxSlope) {
+        if (this.directionalInput.x != -Mathf.Sign(this.controller.collisions.slopeNormal.x)) {
+          velocity.y = this.maxJumpVelocity * this.controller.collisions.slopeNormal.y;
+          velocity.x = this.maxJumpVelocity * this.controller.collisions.slopeNormal.x;
+        }
+      } else {
+        this.velocity.y = this.maxJumpVelocity;
+      }
+    }
+  }
+
+  public void OnJumpInputUp() {
+    if (this.velocity.y > this.minJumpVelocity) {
+     this.velocity.y = this.minJumpVelocity;
+    }
+  }
+
+  private void CalculateVelocity() {
+    float targetVelocityX = this.directionalInput.x * this.moveSpeed;
+    this.velocity.x = Mathf.SmoothDamp(this.velocity.x, targetVelocityX, ref this.velocityXSmoothing, this.controller.collisions.bellow ? this.accelerationTimeGrounded : this.accelerationTimeAirborne);
+    this.velocity.y += this.gravity * Time.deltaTime;
+  }
+
+  private void HandleWallSliding() {
+    this.wallDirX = this.controller.collisions.left ? -1 : 1;
+    this.wallSliding = false;
+    if ((this.controller.collisions.left || this.controller.collisions.right) && !this.controller.collisions.bellow && this.velocity.y <0) {
+      this.wallSliding = true;
+
+      if (this.velocity.y < wallSlideSpeedMax) {
+        this.velocity.y = -wallSlideSpeedMax;
       }
 
       if (this.timeToWallUnstick > 0) {
         this.velocityXSmoothing = 0;
-        velocity.x = 0;
+        this.velocity.x = 0;
 
-        if (input.x != wallDirX && input.x != 0) {
+        if (this.directionalInput.x != this.wallDirX && this.directionalInput.x != 0) {
           this.timeToWallUnstick -= Time.deltaTime;
         } else {
           this.timeToWallUnstick = this.wallStickTime;
@@ -60,36 +114,6 @@ public class TutorialPlayerController : MonoBehaviour {
       } else {
         this.timeToWallUnstick = this.wallStickTime;
       }
-    }
-
-    if (Input.GetKeyDown(KeyCode.Space)) {
-      if (wallSliding) {
-        if (wallDirX == input.x) {
-          velocity.x = -wallDirX * this.wallJumpClimb.x;
-          velocity.y = this.wallJumpClimb.y;
-        } else if (input.x == 0) {
-          velocity.x = -wallDirX * this.wallJumpOff.x;
-          velocity.y = this.wallJumpOff.y;
-        } else {
-          velocity.x = -wallDirX * this.wallLeap.x;
-          velocity.y = this.wallLeap.y;
-        }
-      }
-      if (this.controller.collisions.bellow) {
-        this.velocity.y = this.maxJumpVelocity;
-      }
-    }
-    if (Input.GetKeyUp(KeyCode.Space)) {
-      if (velocity.y > this.minJumpVelocity) {
-        velocity.y = this.minJumpVelocity;
-      }
-    }
-
-    this.velocity.y += this.gravity * Time.deltaTime;
-    this.controller.Move(this.velocity * Time.deltaTime, input);
-
-    if (this.controller.collisions.above || this.controller.collisions.bellow) {
-      this.velocity.y = 0;
     }
   }
 }

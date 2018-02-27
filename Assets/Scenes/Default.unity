@@ -4538,9 +4538,10 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 0
+  distBetweenRays: 0.25
+  skinWidth: 0.015
   horizontalRayCount: 6
   verticalRayCount: 6
-  skinWidth: 0.015
   horizontalRaySpacing: 0
   verticalRaySpacing: 0
   collider: {fileID: 0}
@@ -4775,6 +4776,7 @@ GameObject:
   - component: {fileID: 419550453}
   - component: {fileID: 419550451}
   - component: {fileID: 419550450}
+  - component: {fileID: 419550452}
   m_Layer: 9
   m_Name: PlayerTuto
   m_TagString: Player
@@ -4796,9 +4798,10 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 256
+  distBetweenRays: 0.25
+  skinWidth: 0.015
   horizontalRayCount: 4
   verticalRayCount: 4
-  skinWidth: 0.015
   horizontalRaySpacing: 0
   verticalRaySpacing: 0
   collider: {fileID: 0}
@@ -4826,6 +4829,17 @@ MonoBehaviour:
   wallJumpOff: {x: 8.5, y: 7}
   wallLeap: {x: 18, y: 17}
   wallStickTime: 0.25
+--- !u!114 &419550452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 419550449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5027a4ba8e26247b698a4ba8c542afb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!61 &419550453
 BoxCollider2D:
   m_ObjectHideFlags: 0
