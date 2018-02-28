@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Controller2D : RaycastController {
 
-	public float maxSlopeAngle = 80;
+	public float maxSlopeAngle = 80f;
 	public CollisionInfo collisions;
 
 	//
@@ -104,7 +104,7 @@ public class Controller2D : RaycastController {
 
 			if (hit) {
 
-				if (hit.distance == 0) continue;
+				if (hit.distance == 0 || hit.collider.tag == "OneWay") continue;
 
 				float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
 				if (i == 0 && slopeAngle <= maxSlopeAngle) {
@@ -149,7 +149,7 @@ public class Controller2D : RaycastController {
 
 			if (hit) {
 
-				if (hit.collider.tag == "Through") {
+				if (hit.collider.tag == "OneWay") {
 					if (directionY == 1 || hit.distance == 0) {
 						continue;
 					}

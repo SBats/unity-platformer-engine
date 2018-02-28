@@ -7,20 +7,23 @@ public class TutorialPlayerController : MonoBehaviour {
 
   public float maxJumpHeight = 3f;
   public float minJumpHeight = 1f;
-  public float timeToJumpApex = .4f;
-  public int extrajumps = 0;
+  public float distanceToJumpApex = 3f;
+  public float gravityFallFactor = 1.2f;
+  public int extrajumps = 1;
+  public float extrajumpHeight = 2f;
   public float accelerationTimeAirborne = .2f;
   public float accelerationTimeGrounded = .1f;
-  public float moveSpeed = 6f;
+  public float moveSpeed = 8f;
   public float wallSlideSpeedMax = 3f;
-  public Vector2 wallJumpClimb;
-  public Vector2 wallJumpOff;
-  public Vector2 wallLeap;
   public float wallStickTime = .25f;
+  public Vector2 wallJumpClimb = new Vector2(7.5f, 14f);
+  public Vector2 wallJumpOff = new Vector2(8.5f, 10f);
+  public Vector2 wallLeap = new Vector2(18f, 17f);
 
   private float gravity;
   private float maxJumpVelocity;
   private float minJumpVelocity;
+  private float extraJumpVelocity;
   private Vector3 velocity;
   private float velocityXSmoothing;
   private float timeToWallUnstick;
@@ -29,18 +32,33 @@ public class TutorialPlayerController : MonoBehaviour {
   private bool wallSliding;
   private int wallDirX;
   private int currentJump;
+  private bool jumpRequested = false;
+  private bool cancelJump = false;
 
   private void Start() {
     controller = GetComponent<Controller2D>();
 
-    this.gravity = -(2 * this.maxJumpHeight) / Mathf.Pow(this.timeToJumpApex, 2);
-    this.maxJumpVelocity = Mathf.Abs(this.gravity) * this.timeToJumpApex;
-    this.minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(this.gravity) * this.minJumpHeight);
+    this.gravity = ComputeGravity();
+    this.maxJumpVelocity = (2 * this.maxJumpHeight * this.moveSpeed) / this.distanceToJumpApex;
+    this.minJumpVelocity = (2 * this.minJumpHeight * this.moveSpeed) / this.distanceToJumpApex;
+    this.extraJumpVelocity = (2 * this.extrajumpHeight * this.moveSpeed) / this.distanceToJumpApex;
   }
 
-  private void Update() {
+  private void FixedUpdate() {
     CalculateVelocity();
     HandleWallSliding();
+
+    if (this.controller.collisions.bellow || this.wallSliding) {
+      this.currentJump = 0;
+    }
+
+    if (this.jumpRequested) {
+      Jump();
+    }
+
+    if (this.cancelJump) {
+      CancelJump();
+    }
 
     this.controller.Move(this.velocity * Time.deltaTime, this.directionalInput);
 
@@ -52,9 +70,8 @@ public class TutorialPlayerController : MonoBehaviour {
       }
     }
 
-    if (this.controller.collisions.bellow || this.wallSliding && this.currentJump == this.extrajumps) {
-      this.currentJump = 0;
-    }
+    this.jumpRequested = false;
+    this.cancelJump = false;
   }
 
   public void SetDirectionalInput(Vector2 input) {
@@ -62,46 +79,21 @@ public class TutorialPlayerController : MonoBehaviour {
   }
 
   public void OnJumpInputDown() {
-    if (this.wallSliding) {
-      if (this.wallDirX == this.directionalInput.x) {
-        this.velocity.x = -this.wallDirX * this.wallJumpClimb.x;
-        this.velocity.y = this.wallJumpClimb.y;
-      } else if (this.directionalInput.x == 0) {
-        this.velocity.x = -this.wallDirX * this.wallJumpOff.x;
-        this.velocity.y = this.wallJumpOff.y;
-      } else {
-        this.velocity.x = -this.wallDirX * this.wallLeap.x;
-        this.velocity.y = this.wallLeap.y;
-      }
-    }
-    if (this.controller.collisions.bellow) {
-      this.currentJump = 0;
-      if (this.controller.collisions.slidingDownMaxSlope) {
-        if (this.directionalInput.x != -Mathf.Sign(this.controller.collisions.slopeNormal.x)) {
-          velocity.y = this.maxJumpVelocity * this.controller.collisions.slopeNormal.y;
-          velocity.x = this.maxJumpVelocity * this.controller.collisions.slopeNormal.x;
-        }
-      } else {
-        this.velocity.y = this.maxJumpVelocity;
-      }
-    } else {
-      if (!this.wallSliding && this.currentJump < this.extrajumps) {
-        this.currentJump++;
-        this.velocity.y = this.minJumpVelocity;
-      }
-    }
+    this.jumpRequested = true;
   }
 
   public void OnJumpInputUp() {
-    if (this.velocity.y > this.minJumpVelocity) {
-     this.velocity.y = this.minJumpVelocity;
-    }
+    this.cancelJump = true;
   }
 
   private void CalculateVelocity() {
+    float gravityFactor = 1;
+    if (this.velocity.y < 0) {
+      gravityFactor = gravityFallFactor;
+    }
     float targetVelocityX = this.directionalInput.x * this.moveSpeed;
     this.velocity.x = Mathf.SmoothDamp(this.velocity.x, targetVelocityX, ref this.velocityXSmoothing, this.controller.collisions.bellow ? this.accelerationTimeGrounded : this.accelerationTimeAirborne);
-    this.velocity.y += this.gravity * Time.deltaTime;
+    this.velocity.y += this.gravity * gravityFactor * Time.deltaTime;
   }
 
   private void HandleWallSliding() {
@@ -128,4 +120,46 @@ public class TutorialPlayerController : MonoBehaviour {
       }
     }
   }
+
+  private void Jump() {
+    if (this.wallSliding) {
+      if (this.wallDirX == this.directionalInput.x) {
+        this.velocity.x = -this.wallDirX * this.wallJumpClimb.x;
+        this.velocity.y = this.wallJumpClimb.y;
+      } else if (this.directionalInput.x == 0) {
+        this.velocity.x = -this.wallDirX * this.wallJumpOff.x;
+        this.velocity.y = this.wallJumpOff.y;
+      } else {
+        this.velocity.x = -this.wallDirX * this.wallLeap.x;
+        this.velocity.y = this.wallLeap.y;
+      }
+    } else {
+      if (this.controller.collisions.bellow) {
+        this.currentJump = 0;
+        if (this.controller.collisions.slidingDownMaxSlope) {
+          if (this.directionalInput.x != -Mathf.Sign(this.controller.collisions.slopeNormal.x)) {
+            velocity.y = this.maxJumpVelocity * this.controller.collisions.slopeNormal.y;
+            velocity.x = this.maxJumpVelocity * this.controller.collisions.slopeNormal.x;
+          }
+        } else {
+          this.velocity.y = this.maxJumpVelocity;
+        }
+      } else {
+        if (this.currentJump < this.extrajumps) {
+          this.currentJump++;
+          this.velocity.y = this.extraJumpVelocity;
+        }
+      }
+    }
+  }
+
+  private void CancelJump() {
+    if (this.velocity.y > this.minJumpVelocity) {
+      this.velocity.y = this.minJumpVelocity;
+    }
+  }
+
+  private float ComputeGravity ()	{
+		return (-2 * this.maxJumpHeight * Mathf.Pow(this.moveSpeed, 2)) / Mathf.Pow(this.distanceToJumpApex, 2);
+	}
 }
