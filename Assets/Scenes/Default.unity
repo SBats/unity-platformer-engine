@@ -4693,7 +4693,7 @@ Camera:
   far clip plane: 5000
   field of view: 40
   orthographic: 1
-  orthographic size: 10
+  orthographic size: 6
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -4716,7 +4716,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 283837790}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -27, y: -2, z: -9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -4972,7 +4972,7 @@ GameObject:
   - component: {fileID: 1068943433}
   - component: {fileID: 1068943432}
   - component: {fileID: 1068943431}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: ThroughPlatform
   m_TagString: OneWay
   m_Icon: {fileID: 0}
