@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlatformController : RaycastController {
+public class MovingPlatformController : RaycastController {
 
 	public LayerMask passengerMask;
 	public float speed;

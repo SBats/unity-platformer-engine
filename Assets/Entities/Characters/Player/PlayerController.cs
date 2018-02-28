@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent (typeof (Controller2D))]
-public class TutorialPlayerController : MonoBehaviour {
+public class PlayerController : MonoBehaviour {
 
   public float maxJumpHeight = 3f;
   public float minJumpHeight = 1f;
@@ -28,15 +28,18 @@ public class TutorialPlayerController : MonoBehaviour {
   private float velocityXSmoothing;
   private float timeToWallUnstick;
   private Controller2D controller;
+  private SpriteController spriteController;
   private Vector2 directionalInput;
   private bool wallSliding;
   private int wallDirX;
   private int currentJump;
   private bool jumpRequested = false;
   private bool cancelJump = false;
+  private SpriteController.PlayerState playerState;
 
   private void Start() {
-    controller = GetComponent<Controller2D>();
+    this.controller = GetComponent<Controller2D>();
+    this.spriteController = GetComponentInChildren<SpriteController>();
 
     this.gravity = ComputeGravity();
     this.maxJumpVelocity = (2 * this.maxJumpHeight * this.moveSpeed) / this.distanceToJumpApex;
@@ -72,6 +75,12 @@ public class TutorialPlayerController : MonoBehaviour {
 
     this.jumpRequested = false;
     this.cancelJump = false;
+
+    this.playerState.collisions = this.controller.collisions;
+    this.playerState.velocity = this.velocity;
+    this.playerState.wallSliding = this.wallSliding;
+    this.playerState.input = this.directionalInput;
+    this.spriteController.updateSprite(this.playerState);
   }
 
   public void SetDirectionalInput(Vector2 input) {

@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent (typeof (TutorialPlayerController))]
+[RequireComponent (typeof (PlayerController))]
 public class PlayerInput : MonoBehaviour {
 
-	private TutorialPlayerController player;
+	private PlayerController player;
 
 	// Use this for initialization
 	void Start () {
-		player = GetComponent<TutorialPlayerController>();
+		player = GetComponent<PlayerController>();
 	}
 
 	// Update is called once per frame
