@@ -37,8 +37,8 @@ public class MovingPlatformController : RaycastController {
 	// Lifecycles
 	//
 
-	public override void Start() {
-		base.Start();
+	protected override void Awake() {
+		base.Awake();
 
 		this.globalWaypoints = new Vector3[this.localWaypoints.Length];
 		for (int i = 0; i < this.localWaypoints.Length; i++) {

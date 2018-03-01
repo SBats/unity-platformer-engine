@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 [RequireComponent (typeof (Controller2D))]
 public class PlayerController : MonoBehaviour {
@@ -36,10 +37,17 @@ public class PlayerController : MonoBehaviour {
   private bool jumpRequested = false;
   private bool cancelJump = false;
   private SpriteController.PlayerState playerState;
+  private UnityAction<RaycastHit2D> collisionsActions;
+  private UnityAction<RaycastHit2D> triggerActions;
 
   private void Start() {
     this.controller = GetComponent<Controller2D>();
     this.spriteController = GetComponentInChildren<SpriteController>();
+
+    this.collisionsActions += OnCollision;
+    this.triggerActions += OnTrigger;
+    this.controller.subscribeToColliderEvent(collisionsActions);
+    this.controller.subscribeToTriggerEvent(triggerActions);
 
     this.gravity = ComputeGravity();
     this.maxJumpVelocity = (2 * this.maxJumpHeight * this.moveSpeed) / this.distanceToJumpApex;
@@ -171,4 +179,12 @@ public class PlayerController : MonoBehaviour {
   private float ComputeGravity ()	{
 		return (-2 * this.maxJumpHeight * Mathf.Pow(this.moveSpeed, 2)) / Mathf.Pow(this.distanceToJumpApex, 2);
 	}
+
+  private void OnTrigger(RaycastHit2D hit) {
+    // Debug.Log("Trigger: " + hit.collider.tag);
+  }
+
+  private void OnCollision(RaycastHit2D hit) {
+    // Debug.Log("collision: " + hit.collider.tag);
+  }
 }

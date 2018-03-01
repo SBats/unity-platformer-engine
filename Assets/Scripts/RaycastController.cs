@@ -6,10 +6,13 @@ using UnityEngine;
 public class RaycastController : MonoBehaviour {
 
 	public LayerMask collisionMask;
+	public LayerMask triggerMask;
 
 	public float distBetweenRays = .25f;
 	public float skinWidth = .015f;
 
+	[HideInInspector]
+	public LayerMask hitMask;
 	[HideInInspector]
 	public int horizontalRayCount;
 	[HideInInspector]
@@ -32,9 +35,10 @@ public class RaycastController : MonoBehaviour {
 	// Lifecycles
 	//
 
-	public virtual void Start() {
+	protected virtual void Awake() {
 		this.collider = GetComponent<BoxCollider2D>();
 		CalculateRaySpacing();
+		this.hitMask = this.collisionMask | this.triggerMask;
 	}
 
 	//
